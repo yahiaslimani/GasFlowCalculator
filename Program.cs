@@ -223,6 +223,10 @@ class Program
             flows.Add(flow);
         }
 
+        // Perform capacity validation
+        var validationResults = ValidateFlowCapacities(flows);
+        LogCapacityValidation(validationResults);
+
         await _dataService!.SaveFlowsAsync(flows);
         _logger!.LogInformation($"Saved {flows.Count} flow calculations");
 
@@ -232,8 +236,8 @@ class Program
     static async Task ViewExistingFlows()
     {
         Console.Clear();
-        Console.WriteLine("Existing Gas Flows");
-        Console.WriteLine("==================");
+        Console.WriteLine("Gas Flow Analysis - Comprehensive Metrics");
+        Console.WriteLine("========================================");
 
         var flows = await _dataService!.GetFlowsAsync();
         if (!flows.Any())
@@ -244,17 +248,117 @@ class Program
             return;
         }
 
-        Console.WriteLine($"{"ID",-5} {"Segment",-15} {"Date",-12} {"From Prev",-12} {"Change",-12} {"Pass Thru",-12}");
-        Console.WriteLine(new string('-', 80));
+        // Header
+        Console.WriteLine($"{"ID",-4} {"Segment",-12} {"Date",-12} {"Start Point",-15} {"End Point",-15} " +
+                         $"{"Flow",-10} {"Capacity",-10} {"Usage%",-8} {"Available",-10} {"Status",-15}");
+        Console.WriteLine(new string('-', 132));
 
-        foreach (var flow in flows.OrderBy(f => f.FlowDate).ThenBy(f => f.SegmentId))
+        // Flow data with capacity metrics
+        var sortedFlows = flows.OrderBy(f => f.FlowDate).ThenBy(f => f.SegmentId);
+        int overCapacityCount = 0;
+        int highUsageCount = 0;
+
+        foreach (var flow in sortedFlows)
         {
-            Console.WriteLine($"{flow.Id,-5} {flow.SegmentId,-15} {flow.FlowDate:yyyy-MM-dd,-12} " +
-                            $"{flow.VolumeFromPrevPoint,-12:F6} {flow.VolumeChange,-12:F6} {flow.VolumePassThru,-12:F6}");
+            var startPointName = flow.StartPoint?.Name ?? "Unknown";
+            var endPointName = flow.EndPoint?.Name ?? "Unknown";
+            var segmentName = flow.Segment?.Name ?? $"Seg-{flow.SegmentId}";
+            
+            if (startPointName.Length > 14) startPointName = startPointName.Substring(0, 14);
+            if (endPointName.Length > 14) endPointName = endPointName.Substring(0, 14);
+            if (segmentName.Length > 11) segmentName = segmentName.Substring(0, 11);
+
+            var statusColor = flow.IsOverCapacity ? "⚠️" : flow.UsagePercentage > 90 ? "🔶" : 
+                             flow.UsagePercentage > 75 ? "🔷" : "✅";
+            
+            Console.WriteLine($"{flow.Id,-4} {segmentName,-12} {flow.FlowDate:yyyy-MM-dd,-12} " +
+                            $"{startPointName,-15} {endPointName,-15} " +
+                            $"{flow.ActualFlow,-10:F2} {flow.Capacity,-10:F2} {flow.UsagePercentage,-8:F1} " +
+                            $"{flow.AvailableCapacity,-10:F2} {statusColor + flow.CapacityStatus,-15}");
+
+            if (flow.IsOverCapacity) overCapacityCount++;
+            else if (flow.UsagePercentage > 75) highUsageCount++;
         }
+
+        // Summary statistics
+        Console.WriteLine(new string('-', 132));
+        Console.WriteLine("CAPACITY ANALYSIS SUMMARY:");
+        Console.WriteLine($"Total Segments: {flows.Count}");
+        Console.WriteLine($"Over Capacity: {overCapacityCount} segments");
+        Console.WriteLine($"High Usage (>75%): {highUsageCount} segments");
+        Console.WriteLine($"Normal Operation: {flows.Count - overCapacityCount - highUsageCount} segments");
+
+        if (overCapacityCount > 0)
+        {
+            Console.WriteLine("\n⚠️  CRITICAL: Segments operating over capacity require immediate attention!");
+        }
+        else if (highUsageCount > 0)
+        {
+            Console.WriteLine("\n🔶 ADVISORY: Monitor high usage segments for potential capacity expansion.");
+        }
+        else
+        {
+            Console.WriteLine("\n✅ GOOD: All segments operating within normal capacity limits.");
+        }
+
+        // Additional metrics
+        var totalFlow = flows.Sum(f => f.ActualFlow);
+        var totalCapacity = flows.Sum(f => f.Capacity);
+        var overallUsage = totalCapacity > 0 ? (totalFlow / totalCapacity) * 100 : 0;
+
+        Console.WriteLine($"\nNETWORK OVERVIEW:");
+        Console.WriteLine($"Total Network Flow: {totalFlow:F2} MCF");
+        Console.WriteLine($"Total Network Capacity: {totalCapacity:F2} MCF");
+        Console.WriteLine($"Overall Network Usage: {overallUsage:F1}%");
 
         Console.WriteLine("\nPress any key to continue...");
         Console.ReadKey();
+    }
+
+    static List<string> ValidateFlowCapacities(List<CA_SegmentFlow> flows)
+    {
+        var validationResults = new List<string>();
+        var overCapacityFlows = flows.Where(f => f.IsOverCapacity).ToList();
+        var highUsageFlows = flows.Where(f => f.UsagePercentage > 75 && !f.IsOverCapacity).ToList();
+
+        if (overCapacityFlows.Any())
+        {
+            validationResults.Add($"⚠️  WARNING: {overCapacityFlows.Count} segments are OVER CAPACITY!");
+            foreach (var flow in overCapacityFlows)
+            {
+                validationResults.Add($"   Segment {flow.Segment?.Name}: {flow.ActualFlow:F2} MCF exceeds capacity of {flow.Capacity:F2} MCF ({flow.UsagePercentage:F1}%)");
+            }
+        }
+
+        if (highUsageFlows.Any())
+        {
+            validationResults.Add($"ℹ️  INFO: {highUsageFlows.Count} segments have high capacity usage (>75%):");
+            foreach (var flow in highUsageFlows.Take(5)) // Show top 5
+            {
+                validationResults.Add($"   Segment {flow.Segment?.Name}: {flow.UsagePercentage:F1}% capacity usage");
+            }
+        }
+
+        if (!overCapacityFlows.Any() && !highUsageFlows.Any())
+        {
+            validationResults.Add("✅ All segments are operating within normal capacity limits.");
+        }
+
+        return validationResults;
+    }
+
+    static void LogCapacityValidation(List<string> validationResults)
+    {
+        _logger!.LogInformation("Capacity Validation Results:");
+        foreach (var result in validationResults)
+        {
+            if (result.Contains("WARNING"))
+                _logger!.LogWarning(result);
+            else if (result.Contains("INFO"))
+                _logger!.LogInformation(result);
+            else
+                _logger!.LogInformation(result);
+        }
     }
 
     static async Task ViewNetworks()

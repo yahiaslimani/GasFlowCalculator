@@ -5,6 +5,8 @@
     "NetworkId": 1,
     "StartPointId": 1,
     "EndPointId": 2,
+    "Capacity": 500.0,
+    "CapacityUnit": "MCF",
     "IsActive": true,
     "Description": "Receipt point to compressor station",
     "CreatedDate": "2025-08-30T00:00:00Z"
@@ -15,6 +17,8 @@
     "NetworkId": 1,
     "StartPointId": 2,
     "EndPointId": 3,
+    "Capacity": 300.0,
+    "CapacityUnit": "MCF",
     "IsActive": true,
     "Description": "Compressor station to commercial delivery",
     "CreatedDate": "2025-08-30T00:00:00Z"
@@ -25,6 +29,8 @@
     "NetworkId": 1,
     "StartPointId": 2,
     "EndPointId": 4,
+    "Capacity": 200.0,
+    "CapacityUnit": "MCF",
     "IsActive": true,
     "Description": "Compressor station to residential delivery",
     "CreatedDate": "2025-08-30T00:00:00Z"
@@ -35,6 +41,8 @@
     "NetworkId": 2,
     "StartPointId": 5,
     "EndPointId": 6,
+    "Capacity": 150.0,
+    "CapacityUnit": "MCF",
     "IsActive": true,
     "Description": "Direct delivery segment",
     "CreatedDate": "2025-08-30T00:00:00Z"

@@ -10,6 +10,8 @@ namespace GasFlowCalculator.Models
         public int NetworkId { get; set; }
         public int StartPointId { get; set; }
         public int EndPointId { get; set; }
+        public decimal Capacity { get; set; }
+        public string CapacityUnit { get; set; } = "MCF"; // Million Cubic Feet
         public bool IsActive { get; set; } = true;
         public DateTime CreatedDate { get; set; } = DateTime.Now;
         public DateTime? ModifiedDate { get; set; }

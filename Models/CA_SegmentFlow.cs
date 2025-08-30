@@ -21,5 +21,15 @@ namespace GasFlowCalculator.Models
         public BLT_Segment? Segment { get; set; }
         public CA_Point? StartPoint { get; set; }
         public CA_Point? EndPoint { get; set; }
+
+        // Calculated properties for capacity validation
+        public decimal ActualFlow => Math.Abs(VolumePassThru);
+        public decimal Capacity => Segment?.Capacity ?? 0;
+        public decimal UsagePercentage => Capacity > 0 ? (ActualFlow / Capacity) * 100 : 0;
+        public bool IsOverCapacity => ActualFlow > Capacity;
+        public decimal AvailableCapacity => Math.Max(0, Capacity - ActualFlow);
+        public string CapacityStatus => IsOverCapacity ? "OVER CAPACITY" : 
+                                       UsagePercentage > 90 ? "HIGH USAGE" : 
+                                       UsagePercentage > 75 ? "MODERATE USAGE" : "NORMAL";
     }
 }

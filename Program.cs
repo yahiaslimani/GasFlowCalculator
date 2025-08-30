@@ -68,8 +68,9 @@ namespace GasFlowCalculator
                     Console.WriteLine("3. View Networks");
                     Console.WriteLine("4. View Points");
                     Console.WriteLine("5. View Segments");
-                    Console.WriteLine("6. Exit");
-                    Console.Write("Select an option (1-6): ");
+                    Console.WriteLine("6. View Point Volumes");
+                    Console.WriteLine("7. Exit");
+                    Console.Write("Select an option (1-7): ");
 
                     var choice = Console.ReadLine();
                     Console.WriteLine();
@@ -92,6 +93,9 @@ namespace GasFlowCalculator
                             await ViewSegments(serviceProvider);
                             break;
                         case "6":
+                            await ViewPointVolumes(serviceProvider);
+                            break;
+                        case "7":
                             Console.WriteLine("Goodbye!");
                             return;
                         default:
@@ -279,6 +283,134 @@ namespace GasFlowCalculator
                                 $"{segment.EndPoint?.Name ?? "N/A",-15} " +
                                 $"{segment.Network?.Name ?? "N/A",-20} {segment.IsActive,-8}");
             }
+        }
+
+        private static async Task ViewPointVolumes(IServiceProvider serviceProvider)
+        {
+            using var scope = serviceProvider.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+            // Show available networks
+            var networks = await dbContext.Networks.Where(n => n.IsActive).ToListAsync();
+            if (!networks.Any())
+            {
+                Console.WriteLine("No networks found.");
+                return;
+            }
+
+            Console.WriteLine("Available Networks:");
+            for (int i = 0; i < networks.Count; i++)
+            {
+                Console.WriteLine($"{i + 1}. {networks[i].Name}");
+            }
+
+            Console.Write("Select network (number): ");
+            if (!int.TryParse(Console.ReadLine(), out int networkChoice) || 
+                networkChoice < 1 || networkChoice > networks.Count)
+            {
+                Console.WriteLine("Invalid network selection.");
+                return;
+            }
+
+            var selectedNetwork = networks[networkChoice - 1];
+
+            Console.Write("Enter date for volume data (yyyy-mm-dd): ");
+            if (!DateTime.TryParse(Console.ReadLine(), out DateTime volumeDate))
+            {
+                Console.WriteLine("Invalid date format.");
+                return;
+            }
+
+            // Get points for the selected network
+            var points = await dbContext.Points
+                .Include(p => p.Network)
+                .Where(p => p.NetworkId == selectedNetwork.Id && p.IsActive)
+                .OrderBy(p => p.PointType)
+                .ThenBy(p => p.Name)
+                .ToListAsync();
+
+            if (!points.Any())
+            {
+                Console.WriteLine($"No points found for network '{selectedNetwork.Name}'.");
+                return;
+            }
+
+            // Calculate volumes using the same logic as BLT_Network
+            var bltNetwork = new BLT_Network(serviceProvider);
+            var segments = bltNetwork.GetSegments(selectedNetwork.Id, volumeDate);
+            var pointsForVolume = bltNetwork.GetPoints(segments);
+
+            Console.WriteLine();
+            Console.WriteLine($"Point Volumes for Network '{selectedNetwork.Name}' on {volumeDate:yyyy-MM-dd}:");
+            Console.WriteLine($"{"ID",-5} {"Name",-25} {"Type",-18} {"Volume",-15} {"Description",-30}");
+            Console.WriteLine(new string('-', 95));
+
+            foreach (var point in points)
+            {
+                decimal volume = 0;
+                string volumeDescription = "";
+
+                switch (point.PointType)
+                {
+                    case PointType.Receipt:
+                        // Receipt points have positive volumes (gas entering)
+                        volume = GetReceiptVolume(point.Id, volumeDate);
+                        volumeDescription = "Gas entering system";
+                        break;
+                    case PointType.Delivery:
+                        // Delivery points have negative volumes (gas exiting)
+                        volume = -GetDeliveryVolume(point.Id, volumeDate);
+                        volumeDescription = "Gas exiting system";
+                        break;
+                    case PointType.CompressorStation:
+                        // Compressor stations typically have zero net volume
+                        volume = 0;
+                        volumeDescription = "Pass-through station";
+                        break;
+                }
+
+                Console.WriteLine($"{point.Id,-5} {point.Name,-25} {point.PointType,-18} " +
+                                $"{volume,15:F6} {volumeDescription,-30}");
+            }
+
+            // Show volume balance summary
+            var totalReceipt = points
+                .Where(p => p.PointType == PointType.Receipt)
+                .Sum(p => GetReceiptVolume(p.Id, volumeDate));
+
+            var totalDelivery = points
+                .Where(p => p.PointType == PointType.Delivery)
+                .Sum(p => GetDeliveryVolume(p.Id, volumeDate));
+
+            Console.WriteLine();
+            Console.WriteLine("Volume Balance Summary:");
+            Console.WriteLine($"Total Receipt Volume:  {totalReceipt,15:F6}");
+            Console.WriteLine($"Total Delivery Volume: {totalDelivery,15:F6}");
+            Console.WriteLine($"Net Balance:           {totalReceipt - totalDelivery,15:F6}");
+            
+            if (Math.Abs(totalReceipt - totalDelivery) > 0.001m)
+            {
+                Console.WriteLine("⚠️  Warning: Receipt and delivery volumes are not balanced!");
+            }
+            else
+            {
+                Console.WriteLine("✅ Receipt and delivery volumes are balanced.");
+            }
+        }
+
+        // Helper methods for volume calculation (matching BLT_Network logic)
+        private static decimal GetReceiptVolume(int pointId, DateTime date)
+        {
+            // This simulates the receipt volume calculation
+            // In a real application, this would query actual receipt data from the database
+            return pointId * 10; // Placeholder logic matching BLT_Network
+        }
+
+        private static decimal GetDeliveryVolume(int pointId, DateTime date)
+        {
+            // This simulates the delivery volume calculation
+            // In a real application, this would query actual delivery data from the database
+            return pointId * 5; // Placeholder logic matching BLT_Network
         }
 
         private static void ConfigureServices(IServiceCollection services, IConfiguration configuration)

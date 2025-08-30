@@ -145,3 +145,4 @@
 /home/runner/workspace/obj/Debug/net8.0/GasFlowCalculator.genruntimeconfig.cache
 /home/runner/workspace/obj/Debug/net8.0/ref/GasFlowCalculator.dll
 /home/runner/workspace/bin/Debug/net8.0/appsettings.json
+/home/runner/workspace/obj/Debug/net8.0/GasFlowCalculator.sourcelink.json

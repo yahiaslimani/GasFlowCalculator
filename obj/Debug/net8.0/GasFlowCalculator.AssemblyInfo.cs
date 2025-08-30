@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("GasFlowCalculator")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+68d9fdc9f44fd362b9fb94554a963a5d1671e7e3")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+aee6ea167623227df8cdeee360f63099dbe9cb5f")]
 [assembly: System.Reflection.AssemblyProductAttribute("GasFlowCalculator")]
 [assembly: System.Reflection.AssemblyTitleAttribute("GasFlowCalculator")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

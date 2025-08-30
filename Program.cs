@@ -151,6 +151,7 @@ class Program
 
         // Group points by type
         var receiptPoints = points.Where(p => p.PointType == PointType.Receipt).ToList();
+        var compressorStations = points.Where(p => p.PointType == PointType.CompressorStation).ToList();
         var deliveryPoints = points.Where(p => p.PointType == PointType.Delivery).ToList();
 
         // Calculate total receipt and delivery volumes
@@ -178,7 +179,18 @@ class Program
             _logger!.LogInformation($"Applying balance adjustment factor: {adjustmentFactor}");
         }
 
-        // Calculate flows for each segment
+        // Create dictionary for point volumes for efficient lookup
+        var pointVolumes = new Dictionary<int, decimal>();
+        foreach (var point in receiptPoints)
+        {
+            pointVolumes[point.Id] = await _dataService!.GetPointVolumeAsync(point.Id, flowDate, "Receipt");
+        }
+        foreach (var point in deliveryPoints)
+        {
+            pointVolumes[point.Id] = await _dataService!.GetPointVolumeAsync(point.Id, flowDate, "Delivery");
+        }
+
+        // Calculate flows for each segment using correct logic
         var flows = new List<CA_SegmentFlow>();
         int flowId = 1;
 
@@ -189,20 +201,30 @@ class Program
 
             decimal volumeFromPrev = 0;
             decimal volumeChange = 0;
-            decimal volumePassThru = 0;
 
-            // Calculate flow based on point types
-            if (startPoint?.PointType == PointType.Receipt)
+            // Correct flow calculation logic based on solution description
+            if (startPoint?.PointType == PointType.Receipt && endPoint?.PointType == PointType.CompressorStation)
             {
-                volumeFromPrev = await _dataService!.GetPointVolumeAsync(startPoint.Id, flowDate, "Receipt");
+                // Segment FROM receipt point TO compressor station
+                volumeFromPrev = pointVolumes.GetValueOrDefault(startPoint.Id, 0);
+                volumeChange = 0; // Compressor stations don't consume gas
+            }
+            else if (startPoint?.PointType == PointType.CompressorStation && endPoint?.PointType == PointType.Delivery)
+            {
+                // Segment FROM compressor station TO delivery point
+                var deliveryVolume = pointVolumes.GetValueOrDefault(endPoint.Id, 0);
+                volumeFromPrev = deliveryVolume; // Gas allocated for this delivery point
+                volumeChange = -deliveryVolume; // Gas consumed at delivery point
+            }
+            else if (startPoint?.PointType == PointType.Receipt && endPoint?.PointType == PointType.Delivery)
+            {
+                // Direct segment FROM receipt TO delivery (no compressor station)
+                var deliveryVolume = pointVolumes.GetValueOrDefault(endPoint.Id, 0);
+                volumeFromPrev = deliveryVolume;
+                volumeChange = -deliveryVolume;
             }
 
-            if (endPoint?.PointType == PointType.Delivery)
-            {
-                volumeChange = -(await _dataService!.GetPointVolumeAsync(endPoint.Id, flowDate, "Delivery"));
-            }
-
-            volumePassThru = volumeFromPrev + volumeChange;
+            decimal volumePassThru = volumeFromPrev + volumeChange;
 
             var flow = new CA_SegmentFlow
             {
@@ -221,6 +243,8 @@ class Program
             };
 
             flows.Add(flow);
+
+            _logger!.LogInformation($"Segment {segment.Name}: VolumeFromPrev={volumeFromPrev:F2}, VolumeChange={volumeChange:F2}, VolumePassThru={volumePassThru:F2}");
         }
 
         // Perform capacity validation

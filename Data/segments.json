@@ -1,0 +1,42 @@
+[
+  {
+    "Id": 1,
+    "Name": "Segment A-CS1",
+    "NetworkId": 1,
+    "StartPointId": 1,
+    "EndPointId": 2,
+    "IsActive": true,
+    "Description": "Receipt point to compressor station",
+    "CreatedDate": "2025-08-30T00:00:00Z"
+  },
+  {
+    "Id": 2,
+    "Name": "Segment CS1-B",
+    "NetworkId": 1,
+    "StartPointId": 2,
+    "EndPointId": 3,
+    "IsActive": true,
+    "Description": "Compressor station to commercial delivery",
+    "CreatedDate": "2025-08-30T00:00:00Z"
+  },
+  {
+    "Id": 3,
+    "Name": "Segment CS1-C",
+    "NetworkId": 1,
+    "StartPointId": 2,
+    "EndPointId": 4,
+    "IsActive": true,
+    "Description": "Compressor station to residential delivery",
+    "CreatedDate": "2025-08-30T00:00:00Z"
+  },
+  {
+    "Id": 4,
+    "Name": "Segment D-E",
+    "NetworkId": 2,
+    "StartPointId": 5,
+    "EndPointId": 6,
+    "IsActive": true,
+    "Description": "Direct delivery segment",
+    "CreatedDate": "2025-08-30T00:00:00Z"
+  }
+]

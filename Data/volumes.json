@@ -1,0 +1,58 @@
+[
+  {
+    "PointId": 1,
+    "Date": "2025-08-01T00:00:00Z",
+    "Volume": 100.0,
+    "VolumeType": "Receipt",
+    "Description": "Daily receipt volume"
+  },
+  {
+    "PointId": 3,
+    "Date": "2025-08-01T00:00:00Z",
+    "Volume": 60.0,
+    "VolumeType": "Delivery",
+    "Description": "Commercial delivery volume"
+  },
+  {
+    "PointId": 4,
+    "Date": "2025-08-01T00:00:00Z",
+    "Volume": 40.0,
+    "VolumeType": "Delivery",
+    "Description": "Residential delivery volume"
+  },
+  {
+    "PointId": 5,
+    "Date": "2025-08-01T00:00:00Z",
+    "Volume": 80.0,
+    "VolumeType": "Receipt",
+    "Description": "Secondary receipt volume"
+  },
+  {
+    "PointId": 6,
+    "Date": "2025-08-01T00:00:00Z",
+    "Volume": 80.0,
+    "VolumeType": "Delivery",
+    "Description": "Industrial delivery volume"
+  },
+  {
+    "PointId": 1,
+    "Date": "2025-08-02T00:00:00Z",
+    "Volume": 95.0,
+    "VolumeType": "Receipt",
+    "Description": "Daily receipt volume"
+  },
+  {
+    "PointId": 3,
+    "Date": "2025-08-02T00:00:00Z",
+    "Volume": 55.0,
+    "VolumeType": "Delivery",
+    "Description": "Commercial delivery volume"
+  },
+  {
+    "PointId": 4,
+    "Date": "2025-08-02T00:00:00Z",
+    "Volume": 40.0,
+    "VolumeType": "Delivery",
+    "Description": "Residential delivery volume"
+  }
+]

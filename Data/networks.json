@@ -1,0 +1,16 @@
+[
+  {
+    "Id": 1,
+    "Name": "Main Pipeline Network",
+    "Description": "Primary gas transmission network",
+    "IsActive": true,
+    "CreatedDate": "2025-08-30T00:00:00Z"
+  },
+  {
+    "Id": 2,
+    "Name": "Distribution Network",
+    "Description": "Local distribution network",
+    "IsActive": true,
+    "CreatedDate": "2025-08-30T00:00:00Z"
+  }
+]

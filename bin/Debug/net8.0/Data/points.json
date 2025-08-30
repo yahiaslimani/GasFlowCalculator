@@ -1,0 +1,56 @@
+[
+  {
+    "Id": 1,
+    "Name": "Receipt Point A",
+    "PointType": 1,
+    "NetworkId": 1,
+    "IsActive": true,
+    "Description": "Main gas receipt point",
+    "CreatedDate": "2025-08-30T00:00:00Z"
+  },
+  {
+    "Id": 2,
+    "Name": "Compressor Station 1",
+    "PointType": 2,
+    "NetworkId": 1,
+    "IsActive": true,
+    "Description": "Primary compressor station",
+    "CreatedDate": "2025-08-30T00:00:00Z"
+  },
+  {
+    "Id": 3,
+    "Name": "Delivery Point B",
+    "PointType": 3,
+    "NetworkId": 1,
+    "IsActive": true,
+    "Description": "Commercial delivery point",
+    "CreatedDate": "2025-08-30T00:00:00Z"
+  },
+  {
+    "Id": 4,
+    "Name": "Delivery Point C",
+    "PointType": 3,
+    "NetworkId": 1,
+    "IsActive": true,
+    "Description": "Residential delivery point",
+    "CreatedDate": "2025-08-30T00:00:00Z"
+  },
+  {
+    "Id": 5,
+    "Name": "Receipt Point D",
+    "PointType": 1,
+    "NetworkId": 2,
+    "IsActive": true,
+    "Description": "Secondary receipt point",
+    "CreatedDate": "2025-08-30T00:00:00Z"
+  },
+  {
+    "Id": 6,
+    "Name": "Delivery Point E",
+    "PointType": 3,
+    "NetworkId": 2,
+    "IsActive": true,
+    "Description": "Industrial delivery point",
+    "CreatedDate": "2025-08-30T00:00:00Z"
+  }
+]
